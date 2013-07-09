@@ -102,7 +102,7 @@ def checkMysql():
 
 def checkNginx():
     procDir = r'/proc'
-    nginxPidFile = open(r'/var/run/crond.pid', 'r')
+    nginxPidFile = open(r'/var/run/nginx-ssl.pid', 'r')
     nginxPid = nginxPidFile.read()
     nginxPidFile.close()
 
