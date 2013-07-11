@@ -14,10 +14,10 @@ def checkLoad():
     loadFile = r'/proc/loadavg'
     try:
         loadList = linecache.getline(loadFile, 1).split() 
-        returnMessage = '1 minute load :   ' + str(loadList[0]) + '\n'
-        returnMessage = returnMessage + '5 minutes load : ' + str(loadList[1]) + '\n'
-        returnMessage = returnMessage + '15 minutes load :  ' + str(loadList[2]) + '\n'
-        returnMessage = returnMessage + 'running Process / total Process :' + str(loadList[3]) + '\n'
+        returnMessage = '1 minute load :   ' + str(loadList[0]) + os.linesep
+        returnMessage = returnMessage + '5 minutes load : ' + str(loadList[1]) + os.linesep
+        returnMessage = returnMessage + '15 minutes load :  ' + str(loadList[2]) + os.linesep
+        returnMessage = returnMessage + 'running Process / total Process :' + str(loadList[3]) + os.linesep
 
     except Exception, e:
         print e
@@ -95,16 +95,20 @@ def checkMem():
     except Exception, e:
         print e
 
-    return returnTotalMessege + '\n' + returnFreeMessege + '\n'
+    return returnTotalMessege + os.linesep + returnFreeMessege + os.linesep
 
 def checkMysql():
     pass
 
 def checkNginx():
+    nginxMem = 0
     procDir = r'/proc'
-    nginxPidFile = open(r'/var/run/nginx-ssl.pid', 'r')
+    nginxPidFile = open(r'/var/run/crond.pid', 'r')
     nginxPid = nginxPidFile.read()
     nginxPidFile.close()
+
+    if nginxPid:
+        nginxPid = 2629
 
     procDirList = os.listdir(procDir)
     for processDir in procDirList:
@@ -112,11 +116,11 @@ def checkNginx():
             processFile = open(os.path.join(procDir, processDir, 'stat'), 'r')
             getProcessFile = processFile.readline().split()
 
-            if long(getProcessFile[0]) ==  long(nginxPid) :
-                print getProcessFile
-                print int(getProcessFile[22]) / 1024,getProcessFile[23]
+            if long(getProcessFile[0]) ==  long(nginxPid) or long(getProcessFile[4]) == long(nginxPid):
+                nginxMem += int(getProcessFile[22])
+                #print int(getProcessFile[22]) / 1024,getProcessFile[23]
             processFile.close()
-
+    print nginxMem / 1024 / 1024
 
 def checkDisk():
     try:
@@ -129,7 +133,7 @@ def checkDisk():
     except Exception, e:
         print e
 
-    return getDiskCommand.stdout.read() + '+++++++++++++++++++++++\n' + getiostatCommand.stdout.read()
+    return getDiskCommand.stdout.read() + '+++++++++++++++++++++++' + os.linesep + getiostatCommand.stdout.read()
 
 def checkMoreCpuAndMem():
     try:
@@ -165,28 +169,28 @@ def main():
     
     # write time
     checkRunhtmlFile.write(time.strftime("%Y_%m_%d %H:%M:%S", time.localtime(time.time())))
-    checkRunhtmlFile.write('\n\n')
+    checkRunhtmlFile.write( os.linesep )
 
     # checkload
-    checkRunhtmlFile.write('========loadInfo===========\n')
+    checkRunhtmlFile.write( '========loadInfo===========' + os.linesep )
     checkRunhtmlFile.write(checkLoad())
     # checkmem
-    checkRunhtmlFile.write('========memInfo=============\n')
+    checkRunhtmlFile.write( '========memInfo=============' + os.linesep )
     checkRunhtmlFile.write(checkMem())
 
     # checkdisk
-    checkRunhtmlFile.write('=========disk===============\n')
+    checkRunhtmlFile.write('=========disk===============' + os.linesep )
     checkRunhtmlFile.write(checkDisk())
 
     # check cpu
-    checkRunhtmlFile.write('=========cpu===============\n')
+    checkRunhtmlFile.write('=========cpu===============' + os.linesep )
     checkRunhtmlFile.write(checkCpu())
 
     #check nginx
     checkNginx()
 
     # check the 10 biggest cpu or mem process info
-    checkRunhtmlFile.write('========the most cpu and mem info============\n')
+    checkRunhtmlFile.write('========the most cpu and mem info============' + os.linesep)
     checkRunhtmlFile.write(checkMoreCpuAndMem())
 
     checkRunhtmlFile.close
