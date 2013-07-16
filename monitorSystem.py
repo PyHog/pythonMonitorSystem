@@ -8,6 +8,7 @@ import time
 import re
 import subprocess, shlex
 import linecache
+import MySQLdb
 
 
 def checkLoad():
@@ -98,7 +99,23 @@ def checkMem():
     return returnTotalMessege + os.linesep + returnFreeMessege + os.linesep
 
 def checkMysql():
-    pass
+    mysqlPidFile = r'/data/mysql/mysqld.pid'
+    if os.path.exists(mysqlPidFile):
+        continue
+    else:
+        print 'Mysql is not RUN!!!' + os.linesep
+        exit()
+
+    try:
+        connectMysql = MySQLdb.connect(host = 'localhost',user = 'root', passwd = 'password', db = 'database', port = 3306, charset = 'utf8')
+        cursorConnectMysql = connectMysql.cursor()
+        cursorConnectMysql.execute('select * from user;')
+        cursorConnectMysql.close()
+        connectMysql.close()
+    except MySQLdb.Error,e:
+        print e
+
+
 
 def checkNginx():
     nginxMem = 0
@@ -107,8 +124,8 @@ def checkNginx():
     nginxPid = nginxPidFile.read()
     nginxPidFile.close()
 
-    if nginxPid:
-        nginxPid = 2629
+    #if nginxPid:
+    #    nginxPid = 2629
 
     procDirList = os.listdir(procDir)
     for processDir in procDirList:
@@ -120,7 +137,8 @@ def checkNginx():
                 nginxMem += int(getProcessFile[22])
                 #print int(getProcessFile[22]) / 1024,getProcessFile[23]
             processFile.close()
-    print nginxMem / 1024 / 1024
+    
+    return  'nginxMem:' + str(nginxMem / 1024) + 'KB' + os.linesep
 
 def checkDisk():
     try:
@@ -187,7 +205,8 @@ def main():
     checkRunhtmlFile.write(checkCpu())
 
     #check nginx
-    checkNginx()
+    checkRunhtmlFile.write('==========nginxMem=========' + os.linesep)
+    checkRunhtmlFile.write(checkNginx())
 
     # check the 10 biggest cpu or mem process info
     checkRunhtmlFile.write('========the most cpu and mem info============' + os.linesep)
